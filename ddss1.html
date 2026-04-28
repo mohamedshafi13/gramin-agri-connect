@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gramin Digital Connect — Farmer Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark:   #14532d;
+      --green-mid:    #1a5c38;
+      --green-light:  #2d7a50;
+      --green-pale:   #e5f5ea;
+      --green-muted:  #a8d5b5;
+      --gold:         #f5c842;
+      --gold-dark:    #c49a10;
+      --cream:        #faf6ee;
+      --warm-white:   #ffffff;
+      --text-dark:    #1a1a1a;
+      --text-mid:     #555555;
+      --text-light:   #888888;
+      --border:       #ddd5c5;
+      --error:        #c0392b;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark);
+    }
+
+    /* ── PAGE LAYOUT ── */
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+    }
+
+    @media (max-width: 860px) {
+      .page { grid-template-columns: 1fr; }
+      .side-panel { display: none; }
+    }
+
+    /* ── LEFT DECORATIVE PANEL ── */
+    .side-panel {
+      background: var(--green-mid);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 48px;
+    }
+
+    .side-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(245,200,66,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(20,83,45,0.6) 0%, transparent 70%);
+    }
+
+    .side-pattern {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.06;
+      background-image:
+        repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%),
+        repeating-linear-gradient(-45deg, #fff 0, #fff 1px, transparent 0, transparent 50%);
+      background-size: 28px 28px;
+    }
+
+    .side-content { position: relative; z-index: 1; }
+
+    .side-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: absolute;
+      top: 40px;
+      left: 48px;
+    }
+
+    .side-logo-icon {
+      width: 44px; height: 44px;
+      background: var(--gold);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .side-logo-text { color: #fff; }
+    .side-logo-text h1 { font-family: 'Tiro Devanagari Hindi', serif; font-size: 18px; font-weight: 400; }
+    .side-logo-text p  { font-size: 11px; color: var(--green-muted); letter-spacing: 1.4px; text-transform: uppercase; margin-top: 2px; }
+
+    .side-illustration {
+      margin-bottom: 32px;
+    }
+
+    .side-tagline {
+      font-family: 'Tiro Devanagari Hindi', serif;
+      font-size: 38px;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+
+    .side-tagline span { color: var(--gold); }
+
+    .side-desc {
+      font-size: 15px;
+      color: var(--green-muted);
+      line-height: 1.7;
+      max-width: 340px;
+      margin-bottom: 36px;
+    }
+
+    .side-stats {
+      display: flex;
+      gap: 28px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .stat-num { font-size: 24px; font-weight: 600; color: var(--gold); }
+    .stat-label { font-size: 11px; color: var(--green-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+
+    /* ── RIGHT FORM PANEL ── */
+    .form-panel {
+      background: var(--warm-white);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.06);
+    }
+
+    .form-panel-inner {
+      flex: 1;
+      padding: 48px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* ── TABS ── */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 14px 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      background: none;
+      border-top: none; border-left: none; border-right: none;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.3px;
+    }
+
+    .auth-tab.active {
+      color: var(--green-mid);
+      border-bottom-color: var(--green-mid);
+    }
+
+    /* ── FORM SECTIONS ── */
+    .auth-form { display: none; animation: fadeUp 0.3s ease; }
+    .auth-form.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-heading { font-size: 26px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+    .form-sub     { font-size: 14px; color: var(--text-light); margin-bottom: 28px; line-height: 1.5; }
+
+    /* ── BADGE ── */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--green-pale);
+      color: var(--green-mid);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      letter-spacing: 0.4px;
+    }
+
+    .role-badge::before {
+      content: '';
+      width: 7px; height: 7px;
+      background: var(--green-mid);
+      border-radius: 50%;
+    }
+
+    /* ── INFO STRIP ── */
+    .info-strip {
+      background: var(--green-pale);
+      border: 1px solid #c3e6d0;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 13px;
+      color: var(--green-dark);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      line-height: 1.55;
+      margin-bottom: 22px;
+    }
+
+    .info-strip svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── FIELDS ── */
+    .field { margin-bottom: 18px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    label.lbl {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 7px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--green-mid);
+      box-shadow: 0 0 0 3px rgba(26,92,56,0.1);
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 5px;
+    }
+
+    /* ── PASSWORD WRAPPER ── */
+    .pwd-wrap { position: relative; }
+    .pwd-wrap input { padding-right: 44px; }
+    .pwd-toggle {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text-light);
+      background: none;
+      border: none;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ── FORGOT ── */
+    .forgot {
+      text-align: right;
+      margin-bottom: 22px;
+      margin-top: -8px;
+    }
+    .forgot a { font-size: 13px; color: var(--green-mid); text-decoration: none; font-weight: 500; }
+    .forgot a:hover { text-decoration: underline; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--green-mid);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-primary:hover  { background: var(--green-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 12px;
+      background: var(--green-pale);
+      color: var(--green-mid);
+      border: 1.5px solid #c3e6d0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-secondary:hover { background: #d5eed8; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 12px; color: #bbb; }
+
+    /* ── SWITCH TEXT ── */
+    .switch-text {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 20px;
+    }
+
+    .switch-text a {
+      color: var(--green-mid);
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .switch-text a:hover { text-decoration: underline; }
+
+    /* ── CHECKBOX ── */
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--green-mid);
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+
+    .check-row label {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+
+    .check-row label a { color: var(--green-mid); text-decoration: none; }
+
+    /* ── LANGUAGE BAR ── */
+    .lang-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .lang-label { font-size: 11px; color: var(--text-light); letter-spacing: 1px; text-transform: uppercase; }
+
+    .lang-btn {
+      padding: 4px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-mid);
+      transition: all 0.15s;
+    }
+
+    .lang-btn.active { background: var(--green-mid); color: #fff; border-color: var(--green-mid); }
+    .lang-btn:hover:not(.active) { border-color: var(--green-mid); color: var(--green-mid); }
+
+    /* ── FOOTER ── */
+    .form-footer {
+      padding: 18px 44px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-footer p { font-size: 12px; color: var(--text-light); }
+    .form-footer a { font-size: 12px; color: var(--green-mid); text-decoration: none; }
+    .form-footer a:hover { text-decoration: underline; }
+
+    /* strength bar */
+    .strength-bar {
+      height: 4px;
+      border-radius: 4px;
+      background: var(--border);
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s, background 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- LEFT DECORATIVE PANEL -->
+  <div class="side-panel">
+    <div class="side-pattern"></div>
+
+    <div class="side-logo">
+      <div class="side-logo-icon">🌿</div>
+      <div class="side-logo-text">
+        <h1>Gramin Digital Connect</h1>
+        <p>Rural Marketplace Platform</p>
+      </div>
+    </div>
+
+    <div class="side-content">
+      <!-- Inline SVG Illustration -->
+      <div class="side-illustration">
+        <svg width="340" height="200" viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="170" cy="188" rx="140" ry="10" fill="rgba(255,255,255,0.07)"/>
+          <!-- House -->
+          <rect x="110" y="120" width="120" height="70" rx="4" fill="#2d7a50"/>
+          <rect x="125" y="135" width="28" height="32" rx="3" fill="#f5c842"/>
+          <rect x="165" y="145" width="30" height="18" rx="3" fill="#a8d5b5"/>
+          <rect x="207" y="140" width="18" height="22" rx="3" fill="#a8d5b5"/>
+          <!-- Roof -->
+          <polygon points="102,122 170,72 238,122" fill="#1a5c38"/>
+          <polygon points="122,122 170,84 218,122" fill="#14532d"/>
+          <!-- Door frame detail -->
+          <rect x="125" y="132" width="28" height="3" rx="1" fill="#c49a10"/>
+          <!-- Sun -->
+          <circle cx="56" cy="65" r="22" fill="#f5c842" opacity="0.9"/>
+          <line x1="56" y1="36" x2="56" y2="94" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="27" y1="65" x2="85" y2="65" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="36" y1="44" x2="76" y2="86" stroke="#f5c842" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="76" y1="44" x2="36" y2="86" stroke="#f5c842" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Mobile phone -->
+          <rect x="272" y="90" width="46" height="80" rx="8" fill="#fff" opacity="0.9"/>
+          <rect x="278" y="100" width="34" height="48" rx="3" fill="#e5f5ea"/>
+          <circle cx="295" cy="158" r="5" fill="#c3e6d0"/>
+          <!-- Screen lines -->
+          <line x1="282" y1="108" x2="308" y2="108" stroke="#1a5c38" stroke-width="2" stroke-linecap="round"/>
+          <line x1="282" y1="116" x2="300" y2="116" stroke="#a8d5b5" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="282" y1="123" x2="305" y2="123" stroke="#a8d5b5" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="282" y="130" width="14" height="10" rx="2" fill="#f5c842"/>
+          <rect x="300" y="130" width="10" height="10" rx="2" fill="#1a5c38" opacity="0.5"/>
+          <!-- Connecting dashed line -->
+          <path d="M88 80 Q150 40 272 110" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+          <!-- Wheat stalks -->
+          <line x1="80" y1="190" x2="80" y2="145" stroke="#f5c842" stroke-width="2"/>
+          <ellipse cx="80" cy="140" rx="5" ry="9" fill="#f5c842" transform="rotate(-10 80 140)"/>
+          <line x1="92" y1="190" x2="92" y2="150" stroke="#f5c842" stroke-width="2"/>
+          <ellipse cx="92" cy="145" rx="4" ry="8" fill="#f5c842" transform="rotate(8 92 145)"/>
+          <line x1="260" y1="190" x2="260" y2="155" stroke="#f5c842" stroke-width="2"/>
+          <ellipse cx="260" cy="150" rx="4" ry="8" fill="#f5c842" opacity="0.7"/>
+        </svg>
+      </div>
+
+      <div class="side-tagline">
+        Grow your farm.<br><span>Grow your income.</span>
+      </div>
+      <div class="side-desc">
+        Connect directly with buyers across India. List your crops, handicrafts, and dairy products — zero commission, zero middlemen.
+      </div>
+
+      <div class="side-stats">
+        <div class="stat-item">
+          <div class="stat-num">12,000+</div>
+          <div class="stat-label">Farmers</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">50+</div>
+          <div class="stat-label">Districts</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">₹0</div>
+          <div class="stat-label">Listing Fee</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="form-panel">
+    <div class="form-panel-inner">
+
+     
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login', this)">Sign In</button>
+        <button class="auth-tab" onclick="switchTab('signup', this)">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="auth-form active" id="form-login">
+        <div class="role-badge">Farmer / Artisan Portal</div>
+
+        <div class="info-strip">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7.5" stroke="#1a5c38"/>
+            <path d="M8 7v4M8 5.5V5" stroke="#1a5c38" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span>No smartphone? Call our helpline <strong>1800-XXX-XXXX</strong> (toll-free, 8 AM – 8 PM) for voice-based support.</span>
+        </div>
+
+        <h2 class="form-heading">Welcome back</h2>
+        <p class="form-sub">Sign in to manage your product listings and orders.</p>
+
+        <form onsubmit="handleLogin(event)">
+          <div class="field">
+            <label class="lbl" for="login-mobile">Mobile Number</label>
+            <input type="tel" id="login-mobile" placeholder="+91 98765 43210" maxlength="15" required/>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="login-pwd">Password</label>
+            <div class="pwd-wrap">
+              <input type="password" id="login-pwd" placeholder="Enter your password" required/>
+              <button type="button" class="pwd-toggle" onclick="togglePwd('login-pwd', this)" aria-label="Toggle password">
+                <svg id="eye-login-pwd" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="forgot"><a href="#">Forgot password?</a></div>
+
+          <button onclick="window.location.href='file:///C:/Users/SURYA%20G/OneDrive/Desktop/oops/ddss.html' "type="submit" class="btn-primary">Sign In</button>
+        </form>
+
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-text">OR</span>
+          <div class="divider-line"></div>
+        </div>
+
+          
+
+        <div class="switch-text">
+          New farmer? <a onclick="switchTab('signup', null)">Create a free account →</a>
+        </div>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div class="auth-form" id="form-signup">
+        <div class="role-badge">Farmer / Artisan Portal</div>
+        <h2 class="form-heading">Join Gramin — it's free</h2>
+        <p class="form-sub">Register once and start selling your produce directly to buyers across India.</p>
+
+        <form onsubmit="handleSignup(event)">
+          <div class="field-row">
+            <div class="field">
+              <label class="lbl" for="su-fname">First Name</label>
+              <input type="text" id="su-fname" placeholder="user" required/>
+            </div>
+            <div class="field">
+              <label class="lbl" for="su-lname">Last Name</label>
+              <input type="text" id="su-lname" placeholder="name" required/>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="su-mobile">Mobile Number</label>
+            <input type="tel" id="su-mobile" placeholder="+91 98765 43210" required/>
+            <p class="input-hint">We'll send an OTP to verify your number.</p>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="su-state">State</label>
+            <select id="su-state" required>
+              <option value="">— Select your state —</option>
+              <option>Andhra Pradesh</option><option>Assam</option><option>Bihar</option>
+              <option>Gujarat</option><option>Haryana</option><option>Himachal Pradesh</option>
+              <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+              <option>Madhya Pradesh</option><option>Maharashtra</option><option>Odisha</option>
+              <option>Punjab</option><option>Rajasthan</option><option>Tamil Nadu</option>
+              <option>Telangana</option><option>Uttar Pradesh</option><option>Uttarakhand</option>
+              <option>West Bengal</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="su-district">District / Tehsil</label>
+            <input type="text" id="su-district" placeholder="e.g. Varanasi, Amritsar…"/>
+          </div>
+
+          <div class="field">
+           <!-- Role Selection -->
+<select id="su-role" required>
+    <option value="">-- Select your role --</option>
+    <option value="buyer">Buyers</option>
+    <option value="farmer">Crop Farmer (Vegetables & Fruits)</option>
+    <option value="farmer">Grain / Pulse Farmer</option>
+    <option value="farmer">Dairy Farmer</option>
+    <option value="farmer">Organic Producer</option>
+    <option value="farmer">Fisher</option>
+    <option value="farmer">Artisan / Handicraft Maker</option>
+    <option value="farmer">Spice / Herb Grower</option>
+</select>
+
+<br><br>
+
+
+          </div>
+          
+
+          <div class="field">
+            <label class="lbl" for="su-aadhaar">Aadhaar / Farmer ID (Optional)</label>
+            <input type="text" id="su-aadhaar" placeholder="XXXX XXXX XXXX" maxlength="14"/>
+            <p class="input-hint">Helps verify your identity for government scheme benefits.</p>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="su-pwd">Create Password</label>
+            <div class="pwd-wrap">
+              <input type="password" id="su-pwd" placeholder="Minimum 8 characters" oninput="updateStrength(this)" required/>
+              <button type="button" class="pwd-toggle" onclick="togglePwd('su-pwd', this)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="su-terms" required/>
+            <label for="su-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. My data will only be used to power my Gramin account.</label>
+          </div>
+          <!-- Create Account Button -->
+<button type="button" onclick="redirectUser()"type="submit" class="btn-primary">Create My account</button>
+
+<script>
+function redirectUser() {
+    const role = document.getElementById("su-role").value;
+
+    if (role === "buyer") {
+        window.location.href = "file:///C:/Users/SURYA%20G/OneDrive/Desktop/oops/ddss2.html";
+    } 
+    else if (role === "farmer") {
+        window.location.href = "file:///C:/Users/SURYA%20G/OneDrive/Desktop/oops/ddss.html";
+    } 
+    else {
+        alert("Please select your role");
+    }
+}
+</script>
+        <div class="switch-text">
+          Already registered? <a onclick="switchTab('login', null)">Sign in →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <p>© 2024 Gramin Digital Connect</p>
+      <div style="display:flex; gap:16px;">
+        <a href="#">Help</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function switchTab(tab, btnEl) {
+    document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    document.getElementById('form-' + tab).classList.add('active');
+    if (btnEl) {
+      btnEl.classList.add('active');
+    } else {
+      const tabs = document.querySelectorAll('.auth-tab');
+      tabs[tab === 'login' ? 0 : 1].classList.add('active');
+    }
+  }
+
+  function togglePwd(id, btn) {
+    const inp = document.getElementById(id);
+    const isText = inp.type === 'text';
+    inp.type = isText ? 'password' : 'text';
+    btn.querySelector('svg').style.opacity = isText ? '1' : '0.45';
+  }
+
+  function updateStrength(input) {
+    const val = input.value;
+    const fill = document.getElementById('strength-fill');
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const colors = ['#e74c3c', '#e67e22', '#f5c842', '#1a5c38'];
+    const widths = ['25%', '50%', '75%', '100%'];
+    fill.style.width = val.length ? widths[score - 1] || '25%' : '0%';
+    fill.style.background = val.length ? colors[score - 1] || '#e74c3c' : 'transparent';
+  }
+
+  function setLang(btn) {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    alert('Login successful! Redirecting to your dashboard...');
+  }
+
+  function handleSignup(e) {
+    e.preventDefault();
+    alert('Account created! Please check your mobile for OTP verification.');
+  }
+</script>
+</body>
+</html>
